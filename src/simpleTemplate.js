@@ -1,36 +1,44 @@
 ﻿var simpleTemplate = (function () {
-  var renderJson = function (url, data, target) {
-    var template = templateCache.template(url);
-    if (template != null) {
-      $(target).html(templateController.renderTemplate(template, data));
+
+  var render = function (targetSelector, templateContent, data) {
+    $(targetSelector).html(templateController.renderTemplate(templateContent, data));
+  }
+
+  var renderWithOptions = function (options) {
+    var templateUri = options.templateUri;
+    var templateContent = options.templateContent || templateCache.template(templateUri);
+    var target = options.target;
+    var data = options.data;
+    if (templateContent != null) {
+      render(target, templateContent, data);
       return;
     }
-
-    $.ajax({
-      async: false,
-      cache: true,
-      dataType: "html",
-      type: "GET",
-      url: url,
-      success: function (result) {
-        templateCache.add(url, result);
-        $(target).html(templateController.renderTemplate(result, data));
-      },
-      error: function (xhr) {
-        if (xhr.statusMessage != "error") {
-          templateCache.add(url, xhr.responseText);
-          $(target).html(templateController.renderTemplate(xhr.responseText, data));
-          return;
+    if (templateUri != null) {
+      $.ajax({
+        async: false,
+        cache: true,
+        dataType: "html",
+        type: "GET",
+        url: templateUri,
+        success: function (result) {
+          templateCache.add(templateUri, result);
+          render(target, result, data);
+        },
+        error: function (xhr) {
+          if (xhr.statusMessage != "error") {
+            templateCache.add(templateUri, xhr.responseText);
+            render(target, xhr.responseText, data);
+            return;
+          }
+          $(target).html("Template " + templateUri + " could not be loaded.");
         }
-        $(target).html("Template " + url + " could not be loaded.");
-      }
-    });
+      });
+    }
   };
 
   return {
-    renderJson: function (url, data, target) {
-      renderJson(url, data, target);
-    }
+    render: render,
+    renderWithOptions: renderWithOptions
   };
 })();
 

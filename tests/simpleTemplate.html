@@ -19,8 +19,12 @@
         { Id: 1, Stuff: "stuff 1" },
         { Id: 2, Stuff: "stuff 2" }
       ]
-    };
+  };
 
-    simpleTemplate.renderJson("templates/template.html", model, "#template-area");
+  simpleTemplate.renderWithOptions({
+      templateUri: "templates/template.html",
+      data: model,
+      target: "#template-area"
+  });
   </script>
 </html>

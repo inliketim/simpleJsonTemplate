@@ -15,7 +15,11 @@
 
     spyOn(templateCache, "add").andCallThrough();
 
-    simpleTemplate.renderJson(templateUrl, model, target);
+    simpleTemplate.renderWithOptions({
+      templateUri: templateUrl,
+      data: model,
+      target: target
+    });
   });
 
   it("should call template cache add", function () {
@@ -59,7 +63,11 @@
   describe("and the if no collection elements condition is not satisfied", function () {
     beforeEach(function () {
       model.Collection = [];
-      simpleTemplate.renderJson(templateUrl, model, target);
+      simpleTemplate.renderWithOptions({
+        templateUri: templateUrl,
+        data: model,
+        target: target
+      });
     });
 
     it("should not render the ul tag", function () {
