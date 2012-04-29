@@ -1,0 +1,20 @@
+﻿<div>
+  <h1>${Stuff}</h1>
+  <h3>${Name}</h3>
+  <fieldset>
+    <legend>${Name}</legend>
+    <ul class="collection" data-if="Collection.length > 0">
+      <li data-foreach="item" data-in="Collection" id="${Name}_${item.Id}">${Name} ${item.Id} ${item.Stuff}
+        <ul class="nested-collection" data-if="NestedCollection.length > 0">
+          <li data-foreach="nestedItem" data-in="NestedCollection" id="${Name}_${item.Id}_{$nestedItem.Id}">${item.Id} ${nestedItem.Id} ${nestedItem.Stuff}</li>
+        </ul>
+        <p class="nested-collection" data-if="NestedCollection.length == 0">
+          No items exist in the nested collection...
+        </p>
+      </li>
+    </ul>
+	  <p class="collection" data-if="Collection.length === 0">
+		  No items exist in the collection...
+	  </p>
+  </fieldset>
+</div>
