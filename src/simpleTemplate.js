@@ -1,44 +1,41 @@
 ﻿var simpleTemplate = (function () {
-
-  var render = function (targetSelector, templateContent, data) {
-    $(targetSelector).html(templateController.renderTemplate(templateContent, data));
-  }
-
-  var renderWithOptions = function (options) {
-    var templateUri = options.templateUri;
-    var templateContent = options.templateContent || templateCache.template(templateUri);
-    var target = options.target;
-    var data = options.data;
-    if (templateContent != null) {
-      render(target, templateContent, data);
+  var renderJson = function (url, data, target, callback) {
+    var template = templateCache.template(url);
+    if (template != null) {
+      $(target).html(templateController.renderTemplate(template, data));
+      if (callback)
+        callback();
       return;
     }
-    if (templateUri != null) {
-      $.ajax({
-        async: false,
-        cache: true,
-        dataType: "html",
-        type: "GET",
-        url: templateUri,
-        success: function (result) {
-          templateCache.add(templateUri, result);
-          render(target, result, data);
-        },
-        error: function (xhr) {
-          if (xhr.statusMessage != "error") {
-            templateCache.add(templateUri, xhr.responseText);
-            render(target, xhr.responseText, data);
-            return;
-          }
-          $(target).html("Template " + templateUri + " could not be loaded.");
+
+    $.ajax({
+      async: false,
+      cache: true,
+      dataType: "html",
+      type: "GET",
+      url: url,
+      success: function (result) {
+        templateCache.add(url, result);
+        $(target).html(templateController.renderTemplate(result, data));
+        if (callback)
+          callback();
+      },
+      error: function (xhr) {
+        if (xhr.statusMessage != "error") {
+          templateCache.add(url, xhr.responseText);
+          $(target).html(templateController.renderTemplate(xhr.responseText, data));
+          if (callback)
+            callback();
+          return;
         }
       });
     }
   };
 
   return {
-    render: render,
-    renderWithOptions: renderWithOptions
+    renderJson: function (url, data, target, callback) {
+      renderJson(url, data, target, callback);
+    }
   };
 })();
 
@@ -76,17 +73,41 @@ var templateController = (function () {
   };
 
   var renderCollections = function (dom, data) {
-    var collection = dom.find("*[data-foreach][data-in]");
+    var collection = dom.find("*[data-foreach][data-in],*[foreach][in]");
 
     for (var i = 0; i < collection.length; i++) {
       var element = $(collection[i]);
+
       var collectionName = element.data("in");
+      if (collectionName === undefined)
+        collectionName = element.attr("in");
+
       var itemName = element.data("foreach");
+      if (itemName === undefined)
+        itemName = element.attr("foreach");
+
+      var step = element.data("step");
+      if (step === undefined)
+        step = element.attr("step");
+      if (step === undefined)
+        step = 1;
 
       var collectionData = data[collectionName];
-      for (var j = 0; j < collectionData.length; j++) {
+
+      var pageSize = element.data("pagesize");
+      if (pageSize === undefined)
+        pageSize = element.attr("pagesize");
+      if (pageSize === undefined)
+        pageSize = collectionData.length;
+
+      var startIndex = (data.Page !== undefined && pageSize !== collectionData.length ? data.Page * pageSize : pageSize) - pageSize;
+      var lastIndex = pageSize < collectionData.length ? (pageSize * data.Page) - 1 : collectionData.length - 1;
+      if (lastIndex > collectionData.length - 1)
+        lastIndex = collectionData.length - 1;
+
+      for (var j = startIndex; j <= lastIndex; j = j + step) {
         var newElement = element.clone();
-        newElement.removeAttr("data-foreach").removeAttr("data-in");
+        newElement.removeAttr("data-foreach").removeAttr("data-in").removeAttr("foreach").removeAttr("in");
         newElement = renderProperties(propertyTypes.encoded, newElement, collectionData[j], itemName + ".");
         element.parent().append(newElement);
       }
@@ -96,27 +117,38 @@ var templateController = (function () {
   };
 
   var handleConditions = function (dom, data) {
-    var conditions = dom.find("*[data-if]");
+    var conditions = dom.find("*[data-if],*[if]");
     for (var i = 0; i < conditions.length; i++) {
       var condition = $(conditions[i]).data("if");
-      if (!eval("data." + condition)) {
+      if (condition === undefined)
+        condition = $(conditions[i]).attr("if");
+
+      if (!evalInContext(condition, data)) {
         $(conditions[i]).remove();
       }
-      $(conditions[i]).removeAttr("data-if");
+      $(conditions[i]).removeAttr("data-if").removeAttr("if");
     }
     return dom;
   };
 
+  var evalInContext = function (code, context) {
+    for (var varName in context) {
+      var setContextVar = "var " + varName + " = context." + varName + ";\r\n";
+      eval(setContextVar);
+    }
+    return eval(code);
+  };
+
   var renderTemplate = function (template, data) {
     // prevent template from firing potential 404s by attempting to load resources when initially added to dom
-    template = template.replace(" src=", " src_temp_disabled=");
+    template = template.replace(/ src\=/gi, " src_temp_disabled=");
 
     var dom = $(template);
     dom = handleConditions(dom, data);
     dom = renderEncodedProperties(dom, data);
     dom = renderCollections(dom, data);
 
-    dom = $(dom.outerHtml().replace(" src_temp_disabled=", " src="));
+    dom = $(dom.outerHtml().replace(/src_temp_disabled\=/gi, " src="));
     return dom.outerHtml();
   };
 
@@ -127,8 +159,24 @@ var templateController = (function () {
   };
 })();
 
+var conditionManager = (function () {
+  var parse = function (condition) {
+    return condition.replace(/\#/g, "data.");
+  };
+
+  return {
+    parse: function (condition) {
+      return parse(condition);
+    }
+  };
+})();
+
 var templateCache = (function () {
   var cache = [];
+
+  var clear = function () {
+    cache = [];
+  };
 
   var add = function (key, value) {
     cache.push({ key: key, value: value });
@@ -161,6 +209,9 @@ var templateCache = (function () {
     },
     count: function () {
       return cache.length;
+    },
+    clear: function () {
+      clear();
     }
   };
 })();

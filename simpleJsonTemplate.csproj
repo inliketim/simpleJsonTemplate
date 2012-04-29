@@ -46,8 +46,12 @@
     <Content Include="tests\spec-runner-include.js" />
     <Content Include="tests\SpecRunner.html" />
     <Content Include="tests\spec\nested-for-each-spec.js" />
+    <Content Include="tests\spec\simple-template-spec-nonCompliant.js" />
     <Content Include="tests\spec\simple-template-spec.js" />
     <Content Include="tests\templates\nested-for-each.html" />
+    <Content Include="tests\templates\template-step-5-nonCompliant.html" />
+    <Content Include="tests\templates\template-step-5.html" />
+    <Content Include="tests\templates\template-nonCompliant.html" />
     <Content Include="tests\templates\template.html" />
   </ItemGroup>
   <ItemGroup>

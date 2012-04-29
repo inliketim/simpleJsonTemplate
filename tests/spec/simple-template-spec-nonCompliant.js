@@ -1,6 +1,6 @@
-﻿describe("when using simple template js : simpleTemplate.js", function () {
+﻿describe("when using simple template js with non html-5 compliant attributes : simpleTemplate.js", function () {
   var model;
-  var templateUrl = "./templates/template.html";
+  var templateUrl = "./templates/template-nonCompliant.html";
   var templateStep5Url = "./templates/template-step-5.html";
   var target = $("<div />");
 
@@ -22,11 +22,7 @@
 
     spyOn(templateCache, "add").andCallThrough();
 
-    simpleTemplate.renderWithOptions({
-      templateUri: templateUrl,
-      data: model,
-      target: target
-    });
+    simpleTemplate.renderJson(templateUrl, model, target);
   });
 
   it("should call template cache add", function () {
@@ -98,11 +94,7 @@
   describe("and the if no collection elements condition is not satisfied", function () {
     beforeEach(function () {
       model.Collection = [];
-      simpleTemplate.renderWithOptions({
-        templateUri: templateUrl,
-        data: model,
-        target: target
-      });
+      simpleTemplate.renderJson(templateUrl, model, target);
     });
 
     it("should not render the ul tag", function () {

@@ -13,18 +13,18 @@
   <script type="text/javascript" src="../src/simpleTemplate.js"></script>
   <script type="text/javascript">
     var model = {
-      Name: "Name",
-      Stuff: "Some data including some dangerouse characters < > & stuff ~ ! # $ * ? ",
+      Name: "John Doe",
+      Stuff: "Some data including some dangerous characters < > & stuff ~ ! # $ * ? ",
       Collection: [
         { Id: 1, Stuff: "stuff 1" },
-        { Id: 2, Stuff: "stuff 2" }
+        { Id: 2, Stuff: "stuff 2" },
+        { Id: 3, Stuff: "stuff 3" },
+        { Id: 4, Stuff: "stuff 4" },
+        { Id: 5, Stuff: "stuff 5" },
+        { Id: 6, Stuff: "stuff 6" }
       ]
   };
 
-  simpleTemplate.renderWithOptions({
-      templateUri: "templates/template.html",
-      data: model,
-      target: "#template-area"
-  });
+    simpleTemplate.renderJson("templates/template-step-5.html", model, "#template-area");
   </script>
 </html>
