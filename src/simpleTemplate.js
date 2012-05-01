@@ -8,28 +8,32 @@
       return;
     }
 
+    var successFunction = function (result) {
+      templateCache.add(url, result);
+      $(target).html(templateController.renderTemplate(result, data));
+      if (callback)
+        callback();
+    };
+
+    var errorFunction = function (xhr) {
+      if (xhr.statusMessage != "error") {
+        templateCache.add(url, xhr.responseText);
+        $(target).html(templateController.renderTemplate(xhr.responseText, data));
+        if (callback)
+          callback();
+        return;
+      }
+    };
+
     $.ajax({
       async: false,
       cache: true,
       dataType: "html",
       type: "GET",
       url: url,
-      success: function (result) {
-        templateCache.add(url, result);
-        $(target).html(templateController.renderTemplate(result, data));
-        if (callback)
-          callback();
-      },
-      error: function (xhr) {
-        if (xhr.statusMessage != "error") {
-          templateCache.add(url, xhr.responseText);
-          $(target).html(templateController.renderTemplate(xhr.responseText, data));
-          if (callback)
-            callback();
-          return;
-        }
-      });
-    }
+      success: successFunction,
+      error: errorFunction
+    });
   };
 
   return {

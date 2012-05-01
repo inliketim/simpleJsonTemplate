@@ -15,11 +15,11 @@
 
     spyOn(templateCache, "add").andCallThrough();
 
-    simpleTemplate.renderWithOptions({
-      templateUri: templateUrl,
-      data: model,
-      target: target
-    });
+    simpleTemplate.renderJson(
+      templateUrl,
+      model,
+      target
+    );
   });
 
   it("should call template cache add", function () {
@@ -43,7 +43,7 @@
   });
 
   it("should render each nested collection within a ul tag", function () {
-    
+
   });
 
   it("should render the nested collections as li tags", function () {
@@ -71,11 +71,11 @@
   describe("and the if no collection elements condition is not satisfied", function () {
     beforeEach(function () {
       model.Collection = [];
-      simpleTemplate.renderWithOptions({
-        templateUri: templateUrl,
-        data: model,
-        target: target
-      });
+      simpleTemplate.renderJson(
+        templateUrl,
+        model,
+        target
+      );
     });
 
     it("should not render the ul tag", function () {
